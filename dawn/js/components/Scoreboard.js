@@ -1,6 +1,7 @@
 import React from 'react';
 import TimerStore from '../stores/TimerStore';
 import LighthouseTimerStore from '../stores/LighthouseTimerStore';
+//import LiveScoreStore from '../stores/LiveScoreStore';
 import _ from 'lodash';
 
 var Scoreboard = React.createClass({
@@ -13,7 +14,11 @@ var Scoreboard = React.createClass({
       lighthouseTimeLeft: 0,
       lighthouseWidth: 50,
       lightouseStatus: "Offline",
-      lighthouseColor: "progress-bar-info"};
+      lighthouseColor: "progress-bar-info"},//;
+      //Changes
+      score = null,
+      score-blue: 0,
+      score-gold: 0;
   },
   onTimerChange() {
     this.setState({
@@ -24,6 +29,59 @@ var Scoreboard = React.createClass({
     });
   },
   //TODO
+
+  //CHANGES START HERE
+  //UPDATING LIVE SCORING
+  initializeAlliancesAndChests() {
+    var alliances = {
+            "blue": 0,
+            "gold": 2
+        }
+    var chests = {
+        "gold": 0,
+        "pirate": 1
+    }
+    return [alliances, chests];
+  }
+
+  onScoreChange() {
+    this.setState({
+      score = LiveScoreStore.getScore();
+      updateLiveScore(score);
+      updateLiveScoreBreakdown(score);
+    });
+  }
+
+  updateLiveScore(score) {
+    var blue = 20 * score.treasure_autonomous[0] + 15 * score.treasure_autonomous[1] + 10 * score.treasure_teleop[0] + 5 * score.treasure_teleop[1];
+    var gold = 20 * score.treasure_autonomous[2] + 15 * score.treasure_autonomous[3] + 10 * score.treasure_teleop[2] + 5 * score.treasure_teleop[3];
+    this.setState({
+      score-blue = blue;
+      score-gold = gold;
+    });
+  }
+
+  updateLiveScoreBreakdown(score) {
+    var allianceAndChest = initializeAlliancesAndChests();
+    var alliances = allianceAndChest[0];
+    var chests = allianceAndChest[1];
+    for (alliance in alliances) {
+        for (chest in chests) {
+            $("." + alliance + "#" + chest + " .score-autonomous").text("A: " + score.treasure_autonomous[alliances[alliance] + chests[chest]]);
+            $("." + alliance + "#" + chest + " .score-teleop").text("T: " + score.treasure_teleop[alliances[alliance] + chests[chest]]);
+        }
+    }
+  }
+
+  playSoundAtMatchStartEnd() {
+    if (stage == 'Start' || stage == 'End') {
+      var audio = new Audio('audio_file.mp3');
+      audio.play();
+    }
+  }
+
+  //END
+
   onLighthouseChange() {
     var timeLeft = (LighthouseTimerStore.getComputedTime() / 1000)
     var width = 100
@@ -72,7 +130,8 @@ var Scoreboard = React.createClass({
                       <div className="team-1">-1 Offline</div>
                     </div>
                     <div className="col-md-1 col-md-offset-3 col-xs-1 col-xs-offset-4">
-                      <div className="score-blue text-right" style={{}}>?</div>
+                      // <div className="score-blue text-right" style={{}}>?</div>
+                      <div className="score-blue text-right" style={this.state.score-blue}>?</div>
                     </div>
                   </div>
                 </div>
@@ -84,7 +143,8 @@ var Scoreboard = React.createClass({
                 <div className="panel panel-default pioneers-gold">
                   <div className="row">
                     <div className="col-md-1 col-xs-1">
-                      <div className="score-gold" style={{}}>?</div>
+                      // <div className="score-gold" style={{}}>?</div>
+                      <div className="score-gold" style={this.state.score-gold}>?</div>
                     </div>
                     <div className="col-md-7  col-md-offset-3 col-xs-5 col-xs-offset-4">
                       <div className="team-2 text-right">-1 Offline</div>
